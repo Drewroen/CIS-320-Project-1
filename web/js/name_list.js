@@ -51,7 +51,31 @@ function showDialogAdd() {
 }
 
 function saveChanges() {
-    console.log("The user clicked the Save Changes button!");
+    if($('#firstName').hasClass("is-valid") && $('#lastName').hasClass("is-valid") && $('#email').hasClass("is-valid") && $('#phone').hasClass("is-valid") && $('#birthday').hasClass("is-valid"))
+    {
+        var personObj = {"first" : $('#firstName').val(), "last" : $('#lastName').val(), "phone" : $('#phone').val(), "birthday" : $('#birthday').val(), "email" : $('#email').val(), }
+        var personJSON = JSON.stringify(personObj);
+        var url = "api/name_list_edit";
+
+        $.ajax({
+            type: 'POST',
+            url: url,
+            data: personJSON,
+            success: function(personJSON) {
+                $("#myModal").modal('hide');
+                $('#datatable > thead').html("<tr>\n" +
+                    "            <th>Name</th>\n" +
+                    "            <th>ID</th>\n" +
+                    "            <th>Email</th>\n" +
+                    "            <th>Phone Number</th>\n" +
+                    "            <th>Birthday</th>\n" +
+                    "        </tr>");
+                updateTable();
+            },
+            contentType: "application/json",
+            dataType: 'text' // Could be JSON or whatever too
+        });
+    }
 }
 
 function validateFirstName()
