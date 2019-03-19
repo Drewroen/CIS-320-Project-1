@@ -13,8 +13,11 @@ function updateTable() {
                 var phoneInitial = json_result[i].phone;
                 var phone = phoneInitial.substring(0, 3) + "-" + phoneInitial.substring(3, 6) + "-" + phoneInitial.substring(6, 10);
                 var birthday = json_result[i].birthday;
-                $('#datatable tr:last').after('<tr><td>'+fullName+'</td><td>'+id+'</td><td>'+email+'</td><td>'+phone+'</td><td>'+birthday+'</td></tr>');
+                $('#datatable tr:last').after('<tr><td>'+fullName+'</td><td>'+email+'</td><td>'+phone+'</td><td>'+birthday+'</td>'+'<td><button type=\'button\' name=\'delete\' class=\'deleteButton btn btn-primary\' value= "'+ json_result[i].id + '">Delete</button></td></tr>');
             }
+
+            var buttons = $(".deleteButton");
+            buttons.on("click", deleteItem);
         }
     );
 }
@@ -65,10 +68,10 @@ function saveChanges() {
                 $("#myModal").modal('hide');
                 $('#datatable > thead').html("<tr>\n" +
                     "            <th>Name</th>\n" +
-                    "            <th>ID</th>\n" +
                     "            <th>Email</th>\n" +
                     "            <th>Phone Number</th>\n" +
                     "            <th>Birthday</th>\n" +
+                    "            <th></th>\n" +
                     "        </tr>");
                 updateTable();
             },
@@ -83,14 +86,12 @@ function validateFirstName()
     var firstName = firstNameBox.val();
     var reg = /^([^0-9,:()?*&\^%$#@!+=\[\]{}~\\|;:<>,\/]){1,45}$/;
     if (reg.test(firstName)) {
-        console.log("Valid first name");
         $('#firstName').removeClass("is-invalid");
         $('#firstName').addClass("is-valid");
     } else if (!firstName) {
         $('#firstName').removeClass("is-valid");
         $('#firstName').removeClass("is-invalid");
     } else {
-        console.log("Invalid first name");
         $('#firstName').removeClass("is-valid");
         $('#firstName').addClass("is-invalid");
     }
@@ -101,14 +102,12 @@ function validateLastName()
     var lastName = lastNameBox.val();
     var reg = /^([^0-9,:()?*&\^%$#@!+=\[\]{}~\\|;:<>,\/]){1,45}$/;
     if (reg.test(lastName)) {
-        console.log("Valid last name");
         $('#lastName').removeClass("is-invalid");
         $('#lastName').addClass("is-valid");
     } else if (!lastName) {
         $('#lastName').removeClass("is-valid");
         $('#lastName').removeClass("is-invalid");
     } else {
-        console.log("Invalid last name");
         $('#lastName').removeClass("is-valid");
         $('#lastName').addClass("is-invalid");
     }
@@ -119,14 +118,12 @@ function validateEmail()
     var email = emailBox.val();
     var reg = /[^@]+@[^\.]+\..+/;
     if (reg.test(email)) {
-        console.log("Valid email");
         $('#email').removeClass("is-invalid");
         $('#email').addClass("is-valid");
     } else if (!email) {
         $('#email').removeClass("is-valid");
         $('#email').removeClass("is-invalid");
     } else {
-        console.log("Invalid email");
         $('#email').removeClass("is-valid");
         $('#email').addClass("is-invalid");
     }
@@ -137,14 +134,12 @@ function validatePhone()
     var phone = phoneBox.val();
     var reg = /^[0-9]{3}-[0-9]{3}-[0-9]{4}$/;
     if (reg.test(phone)) {
-        console.log("Valid phone");
         $('#phone').removeClass("is-invalid");
         $('#phone').addClass("is-valid");
     } else if (!phone) {
         $('#phone').removeClass("is-valid");
         $('#phone').removeClass("is-invalid");
     } else {
-        console.log("Invalid phone");
         $('#phone').removeClass("is-valid");
         $('#phone').addClass("is-invalid");
     }
@@ -155,17 +150,38 @@ function validateBirthday()
     var birthday = birthdayBox.val();
     var reg = /^[0-9]{4}-(1[0-2]|[1-9]|0[1-9])-(3[0-1]|[1-2][0-9]|0[1-9]|[1-9])$/;
     if (reg.test(birthday)) {
-        console.log("Valid birthday");
         $('#birthday').removeClass("is-invalid");
         $('#birthday').addClass("is-valid");
     } else if (!birthday) {
         $('#birthday').removeClass("is-valid");
         $('#birthday').removeClass("is-invalid");
     } else {
-        console.log("Invalid birthday");
         $('#birthday').removeClass("is-valid");
         $('#birthday').addClass("is-invalid");
     }
+}
+
+function deleteItem(e) {
+    var url = "api/name_list_delete";
+    var id = e.target.value;
+    $.ajax({
+        type: 'POST',
+        url: url,
+        data: id,
+        success: function(id) {
+            $("#myModal").modal('hide');
+            $('#datatable > thead').html("<tr>\n" +
+                "            <th>Name</th>\n" +
+                "            <th>Email</th>\n" +
+                "            <th>Phone Number</th>\n" +
+                "            <th>Birthday</th>\n" +
+                "            <th></th>\n" +
+                "        </tr>");
+            updateTable();
+        },
+        contentType: "application/json",
+        dataType: 'text' // Could be JSON or whatever too
+    });
 }
 
 updateTable();

@@ -11,14 +11,29 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @WebServlet(name = "NameListEdit")
 public class NameListEdit extends HttpServlet {
     private final static Logger log = Logger.getLogger(NameListEdit.class.getName());
+
+    private Pattern namePattern;
+    private Pattern emailPattern;
+    private Pattern phonePattern;
+    private Pattern birthdayPattern;
+
+    public NameListEdit() {
+        // --- Compile and set up all the regular expression patterns here ---
+        namePattern = Pattern.compile("^([^0-9,:()?*&\\^%$#@!+=\\[\\]{}~\\\\|;:<>,\\/]){1,45}$");
+        emailPattern = Pattern.compile("[^@]+@[^\\.]+\\..+");
+        phonePattern = Pattern.compile("^[0-9]{3}-[0-9]{3}-[0-9]{4}$");
+        birthdayPattern = Pattern.compile("^[0-9]{4}-(1[0-2]|[1-9]|0[1-9])-(3[0-1]|[1-2][0-9]|0[1-9]|[1-9])$");
+
+    }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // You can output in any format, text/JSON, text/HTML, etc. We'll keep it simple
@@ -26,7 +41,7 @@ public class NameListEdit extends HttpServlet {
         PrintWriter out = response.getWriter();
 
         // Just confirm we are calling the servlet we think we are
-        out.println("JSON Post");
+        System.out.println("JSON Post");
 
         // Open the request for reading. Read in each line, put it into a string.
         // Yes, I think there should be an easier way.
@@ -42,13 +57,45 @@ public class NameListEdit extends HttpServlet {
         Gson gson = new Gson();
 
         Person temp = gson.fromJson(requestString, Person.class);
+
+        Matcher matchFirst = namePattern.matcher(temp.getFirst());
+        Matcher matchLast = namePattern.matcher(temp.getLast());
+        Matcher matchEmail = emailPattern.matcher(temp.getEmail());
+        Matcher matchPhone = phonePattern.matcher(temp.getPhone());
+        Matcher matchBirthday = birthdayPattern.matcher(temp.getBirthday());
+
+        if(!matchFirst.find())
+        {
+            System.out.println("There is a problem with the first name. Please fix it.");
+            return;
+        }
+        if(!matchLast.find())
+        {
+            System.out.println("There is a problem with the last name. Please fix it.");
+            return;
+        }
+        if(!matchEmail.find())
+        {
+            System.out.println("There is a problem with the email. Please fix it.");
+            return;
+        }
+        if(!matchPhone.find())
+        {
+            System.out.println("There is a problem with the phone number. Please fix it.");
+            return;
+        }
+        if(!matchBirthday.find())
+        {
+            System.out.println("There is a problem with the birthday. Please fix it.");
+            return;
+        }
+
         // Declare our variables
         Connection conn = null;
         PreparedStatement stmt = null;
-        ResultSet rs = null;
 
         // Databases are unreliable. Use some exception handling
-        out.println("starting connection");
+        System.out.println("starting connection");
         try {
             // Get our database connection
             conn = DBHelper.getConnection();
@@ -70,7 +117,6 @@ public class NameListEdit extends HttpServlet {
                 log.log(Level.SEVERE, "Error", e );
             } finally {
             // Ok, close our result set, statement, and connection
-            try { rs.close(); } catch (Exception e) { log.log(Level.SEVERE, "Error", e ); }
             try { stmt.close(); } catch (Exception e) { log.log(Level.SEVERE, "Error", e ); }
             try { conn.close(); } catch (Exception e) { log.log(Level.SEVERE, "Error", e ); }
         }
