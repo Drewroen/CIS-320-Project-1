@@ -13,11 +13,14 @@ function updateTable() {
                 var phoneInitial = json_result[i].phone;
                 var phone = phoneInitial.substring(0, 3) + "-" + phoneInitial.substring(3, 6) + "-" + phoneInitial.substring(6, 10);
                 var birthday = json_result[i].birthday;
-                $('#datatable tr:last').after('<tr><td>'+fullName+'</td><td>'+email+'</td><td>'+phone+'</td><td>'+birthday+'</td>'+'<td><button type=\'button\' name=\'delete\' class=\'deleteButton btn btn-primary\' value= "'+ json_result[i].id + '">Delete</button></td></tr>');
+                $('#datatable tr:last').after('<tr><td>'+fullName+'</td><td>'+email+'</td><td>'+phone+'</td><td>'+birthday+'</td>'+'<td><button type=\'button\' name=\'delete\' class=\'deleteButton btn btn-primary\' value= "'+ json_result[i].id + '">Delete</button></td><td><button type=\'button\' name=\'edit\' class=\'editButton btn btn-secondary\' value= "'+ json_result[i].id + '">Edit</button></td></tr>');
             }
 
             var buttons = $(".deleteButton");
             buttons.on("click", deleteItem);
+
+            var buttons = $(".editButton");
+            buttons.on("click", editItem);
         }
     );
 }
@@ -37,6 +40,7 @@ function showDialogAdd() {
     $('#email').val("");
     $('#phone').val("");
     $('#birthday').val("");
+    $('#id').val(0);
 
     $('#firstName').removeClass("is-valid");
     $('#firstName').removeClass("is-invalid");
@@ -56,7 +60,7 @@ function showDialogAdd() {
 function saveChanges() {
     if($('#firstName').hasClass("is-valid") && $('#lastName').hasClass("is-valid") && $('#email').hasClass("is-valid") && $('#phone').hasClass("is-valid") && $('#birthday').hasClass("is-valid"))
     {
-        var personObj = {"first" : $('#firstName').val(), "last" : $('#lastName').val(), "phone" : $('#phone').val(), "birthday" : $('#birthday').val(), "email" : $('#email').val(), }
+        var personObj = {"first" : $('#firstName').val(), "last" : $('#lastName').val(), "phone" : $('#phone').val(), "birthday" : $('#birthday').val(), "email" : $('#email').val(), "id" : $('#id').val()}
         var personJSON = JSON.stringify(personObj);
         var url = "api/name_list_edit";
 
@@ -84,7 +88,7 @@ function saveChanges() {
 function validateFirstName()
 {
     var firstName = firstNameBox.val();
-    var reg = /^([^0-9,:()?*&\^%$#@!+=\[\]{}~\\|;:<>,\/]){1,45}$/;
+    var reg = /^([^0-9,:()?*&\^%$#@!+=\[\]{}~\\|;:<>,\/ ]){1,45}$/;
     if (reg.test(firstName)) {
         $('#firstName').removeClass("is-invalid");
         $('#firstName').addClass("is-valid");
@@ -182,6 +186,43 @@ function deleteItem(e) {
         contentType: "application/json",
         dataType: 'text' // Could be JSON or whatever too
     });
+}
+
+function editItem(e) {
+    // Grab the id from the event
+    var id = e.target.value;
+    console.log(id);
+// This next line is fun.
+// "e" is the event of the mouse click
+// "e.target" is what the user clicked on. The button in this case.
+// "e.target.parentNode" is the node that holds the button. In this case, the table cell.
+// "e.target.parentNode.parentNode" is the parent of the table cell. In this case, the table row.
+// "e.target.parentNode.parentNode.querySelectorAll("td")" gets an array of all matching table cells in the row
+// "e.target.parentNode.parentNode.querySelectorAll("td")[0]" is the first cell. (You can grab cells 0, 1, 2, etc.)
+// "e.target.parentNode.parentNode.querySelectorAll("td")[0].innerHTML" is content of that cell. Like "Sam" for example.
+// How did I find this long chain? Just by setting a breakpoint and using the interactive shell in my browser.
+    var firstName = e.target.parentNode.parentNode.querySelectorAll("td")[0].innerHTML.split(" ")[0];
+    var lastName = e.target.parentNode.parentNode.querySelectorAll("td")[0].innerHTML.split(" ")[1];
+    var email = e.target.parentNode.parentNode.querySelectorAll("td")[1].innerHTML;
+    var phone = e.target.parentNode.parentNode.querySelectorAll("td")[2].innerHTML;
+    var birthday = e.target.parentNode.parentNode.querySelectorAll("td")[3].innerHTML;
+
+    $('#id').val(id); // Yes, now we set and use the hidden ID field
+    $('#firstName').val(firstName);
+    $('#lastName').val(lastName);
+    $('#email').val(email);
+    $('#phone').val(phone);
+    $('#birthday').val(birthday);
+
+    validateFirstName();
+    validateLastName()
+    validateEmail();
+    validatePhone();
+    validateBirthday();
+
+
+// Etc
+    $('#myModal').modal('show');
 }
 
 updateTable();
